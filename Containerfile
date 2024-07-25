@@ -6,6 +6,7 @@ RUN dnf install -y bash-completion findutils iproute iputils inotify-tools unzip
             git git-credential-libsecret hub \
             ansible-lint codespell desktop-file-utils gcc jq python3 \
             kubernetes-client helm \
-            bat duf howdoi starship && \
+            bat duf howdoi starship mlocate && \
     dnf clean all
+ADD vscode.repo /etc/yum.repos.d/vscode.repo 
 
