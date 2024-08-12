@@ -7,6 +7,7 @@ RUN dnf install -y bash-completion findutils iproute iputils inotify-tools unzip
             git git-credential-libsecret hub \
             ansible-lint codespell desktop-file-utils gcc jq python3 \
             kubernetes-client helm \
-            bat duf howdoi starship mlocate && \
+            bat duf howdoi starship mlocate \
+	    code && \
     dnf clean all
 
