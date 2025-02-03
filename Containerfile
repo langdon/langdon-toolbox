@@ -11,3 +11,6 @@ RUN dnf install -y bash-completion findutils iproute iputils inotify-tools unzip
 	    code && \
     dnf clean all
 
+RUN dnf update -y && \
+    dnf clean all
+
