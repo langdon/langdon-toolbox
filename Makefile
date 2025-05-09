@@ -10,7 +10,7 @@ podman-build:
 	@podman build -t $(IMAGE_NAME) --file=$(CONTAINER_FNAME) .
 
 podman-build-force:
-	@podman pull fedora-minimal:latest
+	@podman pull fedora-toolbox:latest
 	@podman build  -t $(IMAGE_NAME) --file=$(CONTAINER_FNAME) --no-cache .
 
 #podman-run:
