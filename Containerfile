@@ -6,7 +6,7 @@ ADD vscode.repo /etc/yum.repos.d/vscode.repo
 RUN dnf install -y bash-completion findutils iproute iputils inotify-tools unzip trash-cli wget curl tree \
             net-tools nmap openssl procps psmisc rsync man tig tmux tree vim htop xclip yt-dlp bind-utils \
             httpie ImageMagick pandoc \
-            git git-credential-libsecret hub \
+            git git-credential-libsecret \
             ansible-lint codespell desktop-file-utils gcc jq python3 \
             kubernetes-client helm \
             bat duf howdoi starship plocate emacs-nox \
