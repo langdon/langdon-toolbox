@@ -1,0 +1,21 @@
+name: Weekly Quay Image Rebuild
+
+# Run on a schedule — weekly
+on:
+  schedule:
+    # This cron runs every Sunday at 00:00 UTC (adjust as needed)
+    - cron: '0 0 * * 0'
+  workflow_dispatch: # allow manual trigger too
+
+jobs:
+  trigger-quay-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Quay build
+        # Make a POST to the Quay build trigger webhook
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"ref":"refs/heads/main"}' \
+            "${{ secrets.QUAY_BUILD_TRIGGER_URL }}"
