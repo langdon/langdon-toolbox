@@ -10,11 +10,13 @@ RUN dnf install -y bash-completion findutils iproute iputils inotify-tools unzip
             ansible-lint codespell desktop-file-utils gcc jq python3 \
             kubernetes-client helm \
             bat duf howdoi starship plocate emacs-nox \
-            code gh && \
+            code gh npm && \
     dnf clean all
 
 RUN dnf update -y && \
-    dnf clean all
+    dnf clean alli
+
+RUN npm install -g @anthropic-ai/claude-code @openai/codex && npm cache clean --force
 RUN . /etc/os-release && echo "built on: $PRETTY_NAME"
 
 
