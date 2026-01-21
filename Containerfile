@@ -14,7 +14,7 @@ RUN dnf install -y bash-completion findutils iproute iputils inotify-tools unzip
     dnf clean all
 
 RUN dnf update -y && \
-    dnf clean alli
+    dnf clean all
 
 RUN npm install -g @anthropic-ai/claude-code @openai/codex && npm cache clean --force
 RUN . /etc/os-release && echo "built on: $PRETTY_NAME"
