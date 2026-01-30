@@ -9,7 +9,7 @@ RUN dnf install -y bash-completion findutils iproute iputils inotify-tools unzip
             git git-credential-libsecret \
             ansible-lint codespell desktop-file-utils gcc jq python3 \
             kubernetes-client helm \
-            bat duf howdoi starship plocate emacs-nox \
+            bat duf howdoi starship plocate emacs-nox util-linux-script-2 \
             code gh npm && \
     dnf clean all
 
