@@ -8,10 +8,12 @@ help:
 
 podman-build:
 	@podman build -t $(IMAGE_NAME) --file=$(CONTAINER_FNAME) .
+	@podman tag $(IMAGE_NAME) quay.io/langdon/langdon-toolbox:latest
 
 podman-build-force:
 	@podman pull fedora-toolbox:latest
-	@podman build  -t $(IMAGE_NAME) --file=$(CONTAINER_FNAME) --no-cache .
+	@podman build -t $(IMAGE_NAME) --file=$(CONTAINER_FNAME) --no-cache .
+	@podman tag $(IMAGE_NAME) quay.io/langdon/langdon-toolbox:latest
 
 #podman-run:
 #	@podman run -it \
