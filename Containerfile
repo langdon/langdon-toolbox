@@ -8,7 +8,7 @@ RUN dnf install -y --setopt install_weak_deps=false \
             net-tools nmap openssl procps psmisc rsync man tig tmux tree vim htop xclip yt-dlp bind-utils \
             httpie ImageMagick pandoc sqlite \
             git git-credential-libsecret \
-            ansible-lint codespell desktop-file-utils gcc jq python3 \
+            ansible-lint codespell desktop-file-utils gcc jq python3 poppler-utils \
             kubernetes-client helm \
             bat duf howdoi starship plocate emacs-nox util-linux-script \
             code gh npm && \
