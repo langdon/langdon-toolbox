@@ -8,7 +8,8 @@ RUN dnf install -y --setopt install_weak_deps=false \
             net-tools nmap openssl procps psmisc rsync man tig tmux tree vim htop xclip yt-dlp bind-utils \
             httpie ImageMagick pandoc sqlite \
             git git-credential-libsecret \
-            ansible-lint codespell desktop-file-utils gcc jq python3 poppler-utils texlive-scheme-basic \
+            ansible-lint codespell desktop-file-utils gcc jq python3 poppler-utils \
+            texlive-scheme-small texlive-needspace texlive-parskip texlive-microtype texlive-enumitem \
             kubernetes-client helm \
             bat duf howdoi starship plocate emacs-nox util-linux-script \
             code gh npm && \
