@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora-toolbox:latest
+FROM registry.fedoraproject.org/fedora-toolbox:42
 RUN dnf copr enable -y atim/starship
 ADD vscode.repo /etc/yum.repos.d/vscode.repo
 #RUN dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
