@@ -22,7 +22,13 @@ RUN dnf update -y && \
 # this better be non-interactive
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
-RUN npm install -g @openai/codex && npm cache clean --force
+# Codex is intentionally NOT installed here (unlike Claude above). This RUN
+# step executes as root at build time; /root is not host-shared and is
+# permission-locked (dr-xr-x---), so anything installed to $HOME here is
+# invisible/unreachable to the real runtime user. The standalone installer
+# needs to land under the real (host-shared) ~/.codex, which only a step
+# running as the actual user at container-entry time can do correctly —
+# see distrobox.ini's init_hooks in this same directory tree.
 
 RUN . /etc/os-release && echo "built on: $PRETTY_NAME"
 
