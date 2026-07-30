@@ -22,6 +22,18 @@ RUN dnf update -y && \
 # this better be non-interactive
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
+# Bitwarden Secrets Manager CLI (bws) — for scoped, revocable secret access
+# (bws run -- <cmd>, never bws secret get) instead of plaintext tokens in
+# config files. Version pinned; bump manually when needed rather than
+# always pulling latest, since this is a security-sensitive binary.
+RUN set -eux; \
+    BWS_VERSION=2.1.0; \
+    curl -fsSL -o /tmp/bws.zip "https://github.com/bitwarden/sdk-sm/releases/download/bws-v${BWS_VERSION}/bws-x86_64-unknown-linux-gnu-${BWS_VERSION}.zip"; \
+    unzip -o /tmp/bws.zip -d /tmp; \
+    install -m 0755 /tmp/bws /usr/local/bin/bws; \
+    rm -f /tmp/bws.zip /tmp/bws; \
+    bws --version
+
 # Codex is intentionally NOT installed here (unlike Claude above). This RUN
 # step executes as root at build time; /root is not host-shared and is
 # permission-locked (dr-xr-x---), so anything installed to $HOME here is
