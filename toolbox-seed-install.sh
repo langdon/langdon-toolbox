@@ -13,22 +13,27 @@
 # left root-owned.
 #
 # Usage (from distrobox.ini's init_hooks, once per container start):
-#   /usr/local/libexec/toolbox-seed-install.sh "$container_user_name" "$container_user_home"
+#   /usr/local/libexec/toolbox-seed-install.sh "$container_user_name" "$container_user_home" codex [codex-profile ...]
+# Profile names become both the launcher name and its dot-directory beneath
+# the user's home. With no profiles specified, only the default `codex`
+# profile is installed.
 #
-# Idempotent — each guard below only acts if its real target is missing, so
-# repeat runs (every container start) are a handful of `-x` checks and no-op.
+# Idempotent — package copies and installs are guarded, while the tiny launcher
+# wrappers are safely refreshed on every container start.
 
 set -eu
 
 USER_NAME="${1:?missing container user name}"
 USER_HOME="${2:?missing container user home}"
+shift 2
+
+[ "$#" -gt 0 ] || set -- codex
 
 # codex: same package payload for all profiles, seeded once at build time
 # under /root/.codex, copied into whichever real profile home
 # doesn't have it yet.
 seed_or_fetch_codex() {
-	target_home="$1"    # e.g. $USER_HOME/.codex or $USER_HOME/.codex-spark
-	codex_home_env="$2" # CODEX_HOME to export for the network fallback
+	target_home="$1"
 
 	[ -x "${target_home}/packages/standalone/current/bin/codex" ] && return 0
 
@@ -39,14 +44,10 @@ seed_or_fetch_codex() {
 		chown -R "${USER_NAME}:${USER_NAME}" "${target_home}"
 	else
 		printf 'toolbox-seed-install: no /root seed for codex, installing over the network as %s\n' "${USER_NAME}"
-		runuser -u "${USER_NAME}" -- env HOME="${USER_HOME}" CODEX_HOME="${codex_home_env}" CODEX_NON_INTERACTIVE=true \
+		runuser -u "${USER_NAME}" -- env HOME="${USER_HOME}" CODEX_HOME="${target_home}" CODEX_NON_INTERACTIVE=true \
 			sh -c 'curl -fsSL https://chatgpt.com/codex/install.sh | sh'
 	fi
 }
-
-seed_or_fetch_codex "${USER_HOME}/.codex" "${USER_HOME}/.codex"
-seed_or_fetch_codex "${USER_HOME}/.codex-spark" "${USER_HOME}/.codex-spark"
-seed_or_fetch_codex "${USER_HOME}/.codex-bulk" "${USER_HOME}/.codex-bulk"
 
 # Use a wrapper rather than a symlink so each command sets CODEX_HOME and
 # invokes the standalone binary belonging to that same profile. This avoids
@@ -68,9 +69,23 @@ install_codex_launcher() {
 	chown "${USER_NAME}:${USER_NAME}" "${launcher}"
 }
 
-install_codex_launcher codex "${USER_HOME}/.codex"
-install_codex_launcher codex-spark "${USER_HOME}/.codex-spark"
-install_codex_launcher codex-bulk "${USER_HOME}/.codex-bulk"
+for command_name in "$@"; do
+	case "${command_name}" in
+		''|*[!A-Za-z0-9._-]*)
+			printf 'toolbox-seed-install: invalid codex profile name: %s\n' "${command_name}" >&2
+			exit 2
+			;;
+	esac
+
+	profile_home="${USER_HOME}/.${command_name}"
+	seed_or_fetch_codex "${profile_home}"
+	install_codex_launcher "${command_name}" "${profile_home}"
+
+	# Repair files left root-owned by versions of this installer predating
+	# the seed mechanism. This is a no-op once ownership is correct.
+	find "${profile_home}" ! -user "${USER_NAME}" \
+		-exec chown "${USER_NAME}:${USER_NAME}" {} + 2> /dev/null || true
+done
 
 # claude: one shared binary/version tree, no per-profile package split.
 if [ ! -x "${USER_HOME}/.local/bin/claude" ]; then
@@ -90,5 +105,5 @@ fi
 # Repair pass: fix any files from a pre-seed-script install that ended up
 # root-owned (covers boxes carrying state from before this script existed).
 # Safe to run every time — no-ops once ownership is already correct.
-find "${USER_HOME}/.codex" "${USER_HOME}/.codex-spark" "${USER_HOME}/.codex-bulk" "${USER_HOME}/.local/share/claude" \
+find "${USER_HOME}/.local/share/claude" \
 	! -user "${USER_NAME}" -exec chown "${USER_NAME}:${USER_NAME}" {} + 2> /dev/null || true
