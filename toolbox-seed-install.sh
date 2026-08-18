@@ -23,14 +23,14 @@ set -eu
 USER_NAME="${1:?missing container user name}"
 USER_HOME="${2:?missing container user home}"
 
-# codex: same package payload for both profiles, seeded once at build time
-# under /root/.codex, copied into whichever of the two real profile homes
+# codex: same package payload for all profiles, seeded once at build time
+# under /root/.codex, copied into whichever real profile home
 # doesn't have it yet.
 seed_or_fetch_codex() {
 	target_home="$1"    # e.g. $USER_HOME/.codex or $USER_HOME/.codex-spark
 	codex_home_env="$2" # CODEX_HOME to export for the network fallback
 
-	[ -x "${target_home}/packages/standalone/current/codex" ] && return 0
+	[ -x "${target_home}/packages/standalone/current/bin/codex" ] && return 0
 
 	if [ -d /root/.codex/packages/standalone ]; then
 		printf 'toolbox-seed-install: seeding codex into %s from /root copy\n' "${target_home}"
@@ -46,6 +46,31 @@ seed_or_fetch_codex() {
 
 seed_or_fetch_codex "${USER_HOME}/.codex" "${USER_HOME}/.codex"
 seed_or_fetch_codex "${USER_HOME}/.codex-spark" "${USER_HOME}/.codex-spark"
+seed_or_fetch_codex "${USER_HOME}/.codex-bulk" "${USER_HOME}/.codex-bulk"
+
+# Use a wrapper rather than a symlink so each command sets CODEX_HOME and
+# invokes the standalone binary belonging to that same profile. This avoids
+# whichever install last updated ~/.local/bin/codex determining all profiles.
+install_codex_launcher() {
+	command_name="$1"
+	profile_home="$2"
+	launcher="${USER_HOME}/.local/bin/${command_name}"
+
+	mkdir -p "${USER_HOME}/.local/bin"
+	# Remove an installer-created symlink before redirecting into this path;
+	# otherwise the shell would follow it and overwrite the linked binary.
+	rm -f "${launcher}"
+	printf '%s\n' \
+		'#!/bin/sh' \
+		"CODEX_HOME=\"${profile_home}\" exec \"${profile_home}/packages/standalone/current/bin/codex\" \"\$@\"" \
+		> "${launcher}"
+	chmod 0755 "${launcher}"
+	chown "${USER_NAME}:${USER_NAME}" "${launcher}"
+}
+
+install_codex_launcher codex "${USER_HOME}/.codex"
+install_codex_launcher codex-spark "${USER_HOME}/.codex-spark"
+install_codex_launcher codex-bulk "${USER_HOME}/.codex-bulk"
 
 # claude: one shared binary/version tree, no per-profile package split.
 if [ ! -x "${USER_HOME}/.local/bin/claude" ]; then
@@ -65,5 +90,5 @@ fi
 # Repair pass: fix any files from a pre-seed-script install that ended up
 # root-owned (covers boxes carrying state from before this script existed).
 # Safe to run every time — no-ops once ownership is already correct.
-find "${USER_HOME}/.codex" "${USER_HOME}/.codex-spark" "${USER_HOME}/.local/share/claude" \
+find "${USER_HOME}/.codex" "${USER_HOME}/.codex-spark" "${USER_HOME}/.codex-bulk" "${USER_HOME}/.local/share/claude" \
 	! -user "${USER_NAME}" -exec chown "${USER_NAME}:${USER_NAME}" {} + 2> /dev/null || true
