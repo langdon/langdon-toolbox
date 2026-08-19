@@ -41,6 +41,8 @@ seed_or_fetch_codex() {
 		printf 'toolbox-seed-install: seeding codex into %s from /root copy\n' "${target_home}"
 		mkdir -p "${target_home}"
 		cp -a /root/.codex/packages "${target_home}/"
+		release="$(find "${target_home}/packages/standalone/releases" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort -V | tail -1)"
+		ln -sfn "releases/${release}" "${target_home}/packages/standalone/current"
 		chown -R "${USER_NAME}:${USER_NAME}" "${target_home}"
 	else
 		printf 'toolbox-seed-install: no /root seed for codex, installing over the network as %s\n' "${USER_NAME}"
