@@ -1,6 +1,8 @@
 name: Weekly Quay Image Rebuild
 
 # Run on a schedule — weekly
+env:
+  QUAY_BUILD_TRIGGER_URL: ${{ secrets.QUAY_BUILD_TRIGGER_URL }}
 on:
   schedule:
     # This cron runs every Sunday at 00:00 UTC (adjust as needed)
@@ -15,7 +17,8 @@ jobs:
       - name: Trigger Quay build
         # Make a POST to the Quay build trigger webhook
         run: |
-          curl -X POST \
+          curl --fail-with-body --silent --show-error \
+            -X POST \
             -H "Content-Type: application/json" \
             -d '{"ref":"refs/heads/main"}' \
-            "${{ secrets.QUAY_BUILD_TRIGGER_URL }}"
+            "$QUAY_BUILD_TRIGGER_URL"
