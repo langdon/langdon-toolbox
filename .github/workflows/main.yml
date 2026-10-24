@@ -3,6 +3,8 @@ name: Weekly Quay Image Rebuild
 # Run on a schedule — weekly
 env:
   QUAY_BUILD_TRIGGER_URL: ${{ secrets.QUAY_BUILD_TRIGGER_URL }}
+  COMMIT_SHA: ${{ github.sha }}
+  BUILD_REF: ${{ github.ref }}
 on:
   schedule:
     # This cron runs every Sunday at 00:00 UTC (adjust as needed)
@@ -17,8 +19,13 @@ jobs:
       - name: Trigger Quay build
         # Make a POST to the Quay build trigger webhook
         run: |
-          curl --fail-with-body --silent --show-error \
+          jq -n \
+            --arg commit "$COMMIT_SHA" \
+            --arg ref "$BUILD_REF" \
+            --arg default_branch "main" \
+            '{commit: $commit, ref: $ref, default_branch: $default_branch}' \
+          | curl --fail-with-body --silent --show-error \
             -X POST \
             -H "Content-Type: application/json" \
-            -d '{"ref":"refs/heads/main"}' \
+            --data-binary @- \
             "$QUAY_BUILD_TRIGGER_URL"
