@@ -1,23 +1,34 @@
 FROM registry.fedoraproject.org/fedora-toolbox:latest
+
 RUN dnf copr enable -y atim/starship
-ADD vscode.repo /etc/yum.repos.d/vscode.repo
+COPY vscode.repo /etc/yum.repos.d/vscode.repo
 #RUN dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
 
-RUN dnf install -y --setopt install_weak_deps=false \
-	    bash-completion findutils iproute iputils inotify-tools unzip trash-cli wget curl tree \
-            net-tools nmap openssl procps psmisc rsync man tig tmux tree vim htop xclip yt-dlp bind-utils \
-            httpie ImageMagick pandoc sqlite age restic rclone \
-            keychain git git-credential-libsecret ripgrep mosh \
-            ansible-lint codespell desktop-file-utils gcc jq python3 poppler-utils \
-            texlive-scheme-small texlive-needspace texlive-parskip texlive-microtype texlive-enumitem \
-            kubernetes-client helm \
-            bat duf howdoi starship plocate emacs-nox util-linux-script \
-            code gh npm && \
-    dnf remove -y wireplumber plocate && \
-    dnf clean all
-
-RUN dnf update -y && \
-    dnf clean all
+RUN dnf upgrade -y \
+    && dnf install -y --setopt install_weak_deps=false \
+        # shell & core utilities
+        bash-completion bat duf findutils htop inotify-tools keychain man \
+        procps psmisc qrencode starship task tmux trash-cli tree unzip util-linux-script xclip \
+        # networking & remote
+        bind-utils curl httpie iproute iputils mosh net-tools nmap openssl rsync ttyd wget \
+        # editors
+        emacs-nw vim \
+        # development
+        ansible-lint code codespell desktop-file-utils gcc gh git git-credential-libsecret \
+        jq nodejs npm python3 ripgrep tig \
+        # data, media & documents
+        ImageMagick pandoc poppler-utils sqlite yt-dlp \
+        # backup & sync
+        age rclone restic \
+        # TeX
+        texlive-scheme-small texlive-enumitem texlive-microtype texlive-needspace texlive-parskip \
+        # kubernetes
+        helm kubernetes-client \
+        # misc
+        howdoi \
+    && dnf remove -y wireplumber \
+    && { dnf remove -y plocate || :; } \
+    && dnf clean all
 
 # this better be non-interactive
 RUN curl -fsSL https://claude.ai/install.sh | bash
@@ -53,5 +64,4 @@ RUN set -eux; \
     bws --version
 
 RUN . /etc/os-release && echo "built on: $PRETTY_NAME"
-
 
